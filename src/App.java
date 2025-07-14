@@ -21,3 +21,36 @@ public class App {
         }
     }
 }
+
+
+/* 
+ESto corresponde a la clase GestorDataBase.java que se encuentra en el paquete Utility.
+import Utility.SSHManager;
+import Utility.SSHManager.Usuario;
+import java.util.Arrays;
+
+public class App {
+    public static void main(String[] args) {
+        SSHManager sshManager = new SSHManager();
+
+        // Ejemplo crear usuarios
+        try {
+            var resultados = sshManager.crearUsuarios(
+                Arrays.asList("192.168.1.100", "192.168.1.101"),
+                Arrays.asList(new Usuario("usuario1", "pass1"), new Usuario("usuario2", "pass2")),
+                7, // vencimiento 7 días
+                3  // max sesiones
+            );
+
+            resultados.forEach(System.out::println);
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        // Ejemplo eliminar usuario
+        boolean eliminado = sshManager.eliminarUsuario("usuario1", "192.168.1.100", "tu_clave_ssh");
+        System.out.println("Eliminado: " + eliminado);
+    }
+}
+*/
