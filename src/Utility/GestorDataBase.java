@@ -12,36 +12,19 @@ public class GestorDataBase {
     }
 
     public Item protocolBeforeInsert(Item item, Context context) throws Exception {
-        // Equivalente a item.userEnable = true;
         item.setUserEnable(true);
-
-        // item.record = []
         item.setRecord(new ArrayList<>());
-
-        // item.owner = context.userId;
         item.setOwner(context.getUserId());
 
-        // Consulta ResellerSSH con filtro por userId
         List<ResellerSSH> resultRS = dbService.queryResellerSSHByUserId(context.getUserId());
-
-        // Consulta ServersGenerated con filtro por owner
         List<Item> resultUser = dbService.queryServersGeneratedByOwner(context.getUserId());
 
-        // Función boolean anidada convertida a variable booleana
         boolean limiteOK = false;
         if (!resultRS.isEmpty()) {
             ResellerSSH resellItem = resultRS.get(0);
-            if (resellItem.getLimite() > resultUser.size()) {
-                limiteOK = true;
-            } else {
-                limiteOK = false;
-            }
+            limiteOK = resellItem.getLimite() > resultUser.size();
         } else {
-            if (20 > resultUser.size()) {
-                limiteOK = true;
-            } else {
-                limiteOK = false;
-            }
+            limiteOK = 20 > resultUser.size();
         }
 
         if (!limiteOK) {
@@ -67,6 +50,17 @@ public class GestorDataBase {
                 System.out.println("No se encontraron resultados para el reseller con userId: " + context.getUserId());
             }
         }
+
+        Item itemPredeterminado = new Item();
+        itemPredeterminado.setOwner("defaultOwner");
+        itemPredeterminado.setType("defaultType");
+        itemPredeterminado.setUserEnable(false);
+
+        List<String> excluir = List.of("record");
+        List<String> proteger = List.of("owner");
+
+        // Llamada directa sin método wrapper
+        ItemUtils.copiarCamposSiVacios(item, itemPredeterminado, excluir, proteger);
 
         return item;
     }

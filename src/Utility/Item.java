@@ -13,6 +13,7 @@ public class Item {
         this.record = new ArrayList<>();
     }
 
+
     public boolean isUserEnable() {
         return userEnable;
     }
@@ -37,4 +38,5 @@ public class Item {
     public void setType(String type) {
         this.type = type;
     }
+    
 }
