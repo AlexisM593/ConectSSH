@@ -25,6 +25,10 @@ public  class Protocol {
         this.estado = estado;
     }
 
+     public Protocol(String owner){
+this.owner = owner;
+     }
+
     public String getFechaCreacion() {
         return fechaCreacion;
     }

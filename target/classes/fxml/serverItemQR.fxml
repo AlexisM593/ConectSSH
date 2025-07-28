@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.image.ImageView?>
+<?import javafx.scene.layout.AnchorPane?>
+
+
+<AnchorPane fx:id="paneItem" maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="239.0" prefWidth="303.0" xmlns="http://javafx.com/javafx/24.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.programacion.UxController.serverItemQR">
+   <children>
+      <ImageView fx:id="imageServer" fitHeight="166.0" fitWidth="207.0" layoutX="48.0" layoutY="47.0" pickOnBounds="true" preserveRatio="true" />
+      <Label fx:id="nameLocation" alignment="CENTER" contentDisplay="CENTER" layoutY="15.0" prefHeight="18.0" prefWidth="303.0" text="Ubicacion del server" />
+   </children>
+</AnchorPane>

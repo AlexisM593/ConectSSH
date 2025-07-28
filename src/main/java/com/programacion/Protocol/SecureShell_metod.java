@@ -1,10 +1,14 @@
 package com.programacion.Protocol;
 
+import java.io.BufferedReader;
 import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.Callable;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
@@ -14,35 +18,31 @@ import com.jcraft.jsch.JSch;
 import com.jcraft.jsch.JSchException;
 import com.jcraft.jsch.Session;
 import com.programacion.Utility.IModificar;
+import com.programacion.Utility.LocationDB;
+import com.programacion.UxController.UtilityUX.Tool.Result;
 
 public class SecureShell_metod implements IModificar {
-
-    private static String getSSHKeyFromDB(String ip) {
-
-        return "claveSSH123";
-    }
-
     public static String executeCommand(Session session, String command) throws Exception {
+        if (session == null || !session.isConnected()) {
+            throw new IllegalStateException("La sesión SSH no está conectada.");
+        }
+
         ChannelExec channel = (ChannelExec) session.openChannel("exec");
         channel.setCommand(command);
+        channel.setInputStream(null);
+        channel.setErrStream(System.err);
+
         InputStream in = channel.getInputStream();
-        InputStream err = channel.getErrStream();
+
+        // Prueba con ISO_8859_1 si ves caracteres raros con UTF-8
+        BufferedReader reader = new BufferedReader(new InputStreamReader(in, StandardCharsets.ISO_8859_1));
 
         channel.connect(4000);
 
-        byte[] tmp = new byte[1024];
         StringBuilder output = new StringBuilder();
-        while (true) {
-            while (in.available() > 0) {
-                int i = in.read(tmp, 0, 1024);
-                if (i < 0)
-                    break;
-                output.append(new String(tmp, 0, i));
-            }
-
-            if (channel.isClosed())
-                break;
-            Thread.sleep(100);
+        String line;
+        while ((line = reader.readLine()) != null) {
+            output.append(line).append("\n");
         }
 
         int exitStatus = channel.getExitStatus();
@@ -52,24 +52,17 @@ public class SecureShell_metod implements IModificar {
             throw new RuntimeException("El comando falló con código: " + exitStatus + "\n" + output);
         }
 
-        return output.toString();
+        return output.toString().trim();
     }
 
-    public static class Result {
-        public String ip;
-        public String hwid;
-        public String result;
-        public String error;
-
-        @Override
-        public String toString() {
-            return "___________\nUbicación: " + ip +
-                    "\nHWID: " + hwid +
-                    (result != null ? "\nResultado: " + result : "\nError: " + error) + "\n";
-        }
+    public static CompletableFuture<Void> crearCuentaAsync(List<String> ips, List<String> users, int vigencia,
+            boolean habilitar) {
+        return CompletableFuture.runAsync(() -> {
+            crearCuenta(ips, users, vigencia, habilitar);
+        });
     }
 
-    public static List<Result> crearCuenta(List<String> ips, List<String> users, int vigencia, int logIn) {
+    public static List<Result> crearCuenta(List<String> ips, List<String> users, int vigencia, boolean habilitar) {
         final int vigenciaF = vigencia < 1 ? 1 : vigencia;
 
         List<Result> overallResults = Collections.synchronizedList(new ArrayList<>());
@@ -85,23 +78,38 @@ public class SecureShell_metod implements IModificar {
             tasks.add(() -> {
                 Session session = null;
                 try {
-                    String sshKey = getSSHKeyFromDB(ip); // debes implementar esto
-                    session = conectarSSH(ip, "root", sshKey);
+                    String sshKey = LocationDB.getSSHKeyFromDB(ip);
+                    String userLogin = LocationDB.getUserLoginFromDB(ip);
+                    System.out.println("imprimiendo usaerLO " + sshKey + userLogin + ip);
+                    session = conectarSSH(ip, userLogin, sshKey);
                     for (String userObj : users) {
-                        String user = userObj;
-                        String password = userObj;
 
-                        boolean exists = checkUserExists(session, user);
+                        String user = userObj.trim().replaceAll("[^a-zA-Z0-9_-]", "");
 
-                        String createUserCmd = exists ? "" : "sudo useradd -m -s /bin/false " + user + " && ";
-                        String setPasswordCmd = "echo \"" + user + ":" + password + "\" | sudo chpasswd";
-                        String setSessionLimit = "echo \"" + user + " hard maxlogins " + 3
-                                + "\" | sudo tee -a /etc/security/limits.conf";
+
+                        // boolean exists = checkUserExists(session, user);
+                        String createUserCmd = "sudo useradd -m -s /bin/false " + user;
+                        String setPasswordCmd = "echo \"" + user + ":" + user + "\" | sudo chpasswd";
+                        String setSessionLimit = "echo \"" + user
+                                + " hard maxlogins 3\" | sudo tee -a /etc/security/limits.conf";
                         String setExpiration = "sudo chage -E \"$(date -d '+" + vigenciaF + " days' '+%Y-%m-%d')\" "
                                 + user;
-                        String fullCommand = createUserCmd + setPasswordCmd + " && " + setSessionLimit + " && "
-                                + setExpiration;
 
+                        String comandoHabilitar = "";
+                        if (habilitar) {
+                            comandoHabilitar = "sudo passwd -u " + user;
+                        } else {
+                            comandoHabilitar = "sudo passwd -l " + user;
+                        }
+
+                        String fullCommand = String.join(" && ",
+                                createUserCmd,
+                                setPasswordCmd,
+                                setSessionLimit,
+                                setExpiration,
+                                comandoHabilitar);
+
+                        fullCommand = "bash -c \"" + fullCommand + "\"";
                         try {
                             String output = executeCommand(session, fullCommand);
                             Result res = new Result();
@@ -162,7 +170,14 @@ public class SecureShell_metod implements IModificar {
         }
     }
 
-    public List<String> gjActualizarUsuario(List<String> ips, List<String> users, int vigencia, int inicioSesion,
+    public static CompletableFuture<Void> modificarCuentaAsync(List<String> ips, List<String> users, int vigencia,
+            Boolean habilitar) {
+        return CompletableFuture.runAsync(() -> {
+            modificarCuenta(ips, users, vigencia, habilitar);
+        });
+    }
+
+    public static List<String> modificarCuenta(List<String> ips, List<String> users, int vigencia,
             Boolean habilitar) {
         List<String> resultadosGlobales = new ArrayList<>();
 
@@ -173,30 +188,41 @@ public class SecureShell_metod implements IModificar {
             if (!ip.equals("0.0.0.0")) {
                 Session sesion = null;
                 try {
-                    String claveSSH = getSSHKeyFromDB(ip);
-                    sesion = conectarSSH(ip, "root", claveSSH);
+                    String claveSSH = LocationDB.getSSHKeyFromDB(ip);
+                    String userLogin = LocationDB.getUserLoginFromDB(ip);
+
+                    sesion = conectarSSH(ip, userLogin, claveSSH);
 
                     for (String userHiwd : users) {
 
-                        String comandoCrearUsuario = "";
-                        if (!comprobarUsuarioExiste(sesion, userHiwd)) {
-                            comandoCrearUsuario = "sudo useradd -m -s /bin/false " + userHiwd;
+                        // Comandos individuales
+                        List<String> comandos = new ArrayList<>();
+
+                        if (!checkUserExists(sesion, userHiwd)) {
+                            comandos.add("sudo useradd -m -s /bin/false " + userHiwd);
                         }
 
-                        String comandoHabilitarUsuario = habilitar != null
-                                ? (habilitar ? "sudo passwd -u " + userHiwd : "sudo passwd -l " + userHiwd)
-                                : "";
-                        String comandoEstablecerContrasena = "echo \"" + userHiwd + ":" + userHiwd
-                                + "\" | sudo chpasswd";
-                        String comandoLimitarSesiones = "echo \"" + userHiwd + " hard maxlogins " + inicioSesion
-                                + "\" | sudo tee -a /etc/security/limits.conf";
-                        String comandoEstablecerExpiracion = "sudo chage -E \"$(date -d '" + vigenciaF
-                                + " days' '+%Y-%m-%d')\" " + userHiwd;
+                        comandos.add("echo \"" + userHiwd + ":" + userHiwd + "\" | sudo chpasswd");
 
-                        String comandoCompleto = String.join(" && ", comandoCrearUsuario, comandoEstablecerContrasena,
-                                comandoLimitarSesiones, comandoEstablecerExpiracion, comandoHabilitarUsuario);
+                        comandos.add(
+                                "echo \"" + userHiwd + " hard maxlogins 3\" | sudo tee -a /etc/security/limits.conf");
 
-                        ejecutarComando(sesion, comandoCompleto);
+                        comandos.add("sudo chage -E \"$(date -d '" + vigenciaF + " days' '+%Y-%m-%d')\" " + userHiwd);
+
+                        String comandoHabilitar;
+                        if (habilitar) {
+                            comandoHabilitar = "sudo passwd -u " + userHiwd;
+                        } else {
+                            comandoHabilitar = "sudo passwd -l " + userHiwd;
+                        }
+                        comandos.add(comandoHabilitar);
+
+                        // Unir comandos con &&
+                        String comandoCompleto = "bash -c \"" + String.join(" && ", comandos) + "\"";
+
+                        System.out.println("MODIFICANDO CUENTA 2");
+
+                        executeCommand(sesion, comandoCompleto);
                         resultadosGlobales.add("Usuario actualizado correctamente: " + userHiwd + " en " + ip);
                     }
                 } catch (Exception e) {
@@ -211,32 +237,89 @@ public class SecureShell_metod implements IModificar {
         return resultadosGlobales;
     }
 
-    public boolean eliminarHwid(String Hwid, String ip, String claveSSH) {
-        try {
-            JSch jsch = new JSch();
-            Session session = jsch.getSession("root", ip, 22);
-            session.setPassword(claveSSH);
-            java.util.Properties config = new java.util.Properties();
-            config.put("StrictHostKeyChecking", "no");
-            session.setConfig(config);
+    public static CompletableFuture<Void> eliminarCuentaAsync(List<String> users, List<String> ips) {
+        return CompletableFuture.runAsync(() -> {
+            eliminarCuenta(ips, users);
+        });
+    }
 
-            System.out.println("Conectando al servidor SSH...");
-            session.connect(5000);
+    public static List<Result> eliminarCuenta(List<String> users, List<String> ips) {
+        List<Result> resultados = Collections.synchronizedList(new ArrayList<>());
+        ExecutorService executor = Executors.newFixedThreadPool(ips.size());
 
-            String comando = "sudo userdel -r " + Hwid;
-            ChannelExec channel = (ChannelExec) session.openChannel("exec");
-            channel.setCommand(comando);
-            channel.connect();
+        List<Callable<Void>> tareas = new ArrayList<>();
 
-            System.out.println("Comando ejecutado: " + comando);
+        for (String ip : ips) {
+            if (ip.equals("0.0.0.0"))
+                continue;
 
-            channel.disconnect();
-            session.disconnect();
-            return true;
-        } catch (Exception e) {
-            System.out.println("Error al eliminar usuario: " + e.getMessage());
-            return false;
+            tareas.add(() -> {
+                Session session = null;
+                try {
+                    String clave = LocationDB.getSSHKeyFromDB(ip); // Debes tener esto implementado
+                    session = conectarSSH(ip, "root", clave);
+
+                    for (String user : users) {
+                        Result res = new Result();
+                        res.ip = ip;
+                        res.hwid = user;
+
+                        try {
+                            if (checkUserExists(session, user)) {
+                                try {
+                                    executeCommand(session, "sudo timeout 3s pkill -u " + user);
+                                } catch (Exception e) {
+                                    System.out.println("No hay procesos para " + user);
+                                }
+
+                                executeCommand(session, "sudo deluser --remove-home " + user);
+
+                                boolean sigueExistiendo = checkUserExists(session, user);
+
+                                if (sigueExistiendo) {
+                                    res.result = "Error: El usuario aún existe.";
+                                } else {
+                                    res.result = "Usuario eliminado con éxito.";
+                                }
+
+                            } else {
+                                res.result = "El usuario ya no existe.";
+                            }
+
+                        } catch (Exception e) {
+                            res.error = e.getMessage();
+                        }
+
+                        resultados.add(res);
+                    }
+
+                } catch (Exception e) {
+                    for (String user : users) {
+                        Result res = new Result();
+                        res.ip = ip;
+                        res.hwid = user;
+                        res.error = "Fallo de conexión SSH: " + e.getMessage();
+                        resultados.add(res);
+                    }
+
+                } finally {
+                    if (session != null && session.isConnected()) {
+                        session.disconnect();
+                    }
+                }
+                return null;
+            });
         }
+
+        try {
+            executor.invokeAll(tareas);
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+        } finally {
+            executor.shutdown();
+        }
+
+        return resultados;
     }
 
     private static Session conectarSSH(String ip, String usuario, String clave) throws JSchException {
@@ -246,31 +329,6 @@ public class SecureShell_metod implements IModificar {
         sesion.setConfig("StrictHostKeyChecking", "no");
         sesion.connect(8000); // Tiempo de espera: 8 segundos
         return sesion;
-    }
-
-    private boolean comprobarUsuarioExiste(Session sesion, String Hwid) throws Exception {
-        String comandoVerificar = "id -u " + Hwid;
-        try {
-            ejecutarComando(sesion, comandoVerificar);
-            return true;
-        } catch (Exception e) {
-            String mensajeError = e.getMessage().toLowerCase();
-            return mensajeError.contains("Hwid no encontrado")
-                    || mensajeError.contains("id:") && mensajeError.contains("Hwid no existe");
-        }
-    }
-
-    private void ejecutarComando(Session sesion, String comando) throws Exception {
-        ChannelExec canal = (ChannelExec) sesion.openChannel("exec");
-        canal.setCommand(comando);
-        canal.setErrStream(System.err);
-        canal.connect();
-
-        try {
-            canal.disconnect();
-        } catch (Exception e) {
-            throw new Exception("Error ejecutando comando: " + e.getMessage());
-        }
     }
 
 }

@@ -15,27 +15,27 @@
 <?import javafx.scene.layout.StackPane?>
 <?import javafx.scene.layout.VBox?>
 
-<FlowPane maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" styleClass="fondoBox" stylesheets="@css/estilos.css" xmlns="http://javafx.com/javafx/24.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.programacion.UxController.ItemController">
+<FlowPane fx:id="NodoRaiz" maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" styleClass="fondoBox" stylesheets="@css/estilos.css" xmlns="http://javafx.com/javafx/24.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.programacion.UxController.ItemController">
    <children>
-      <VBox fx:id="vboxRepetidor" alignment="TOP_CENTER" fillWidth="false" prefWidth="498.0" styleClass="tarjeta" stylesheets="@estilos.css">
+      <VBox fx:id="vboxRepetidor" alignment="TOP_CENTER" fillWidth="false" prefWidth="498.0" styleClass="tarjeta" stylesheets="@../css/estilos.css">
          <children>
-            <AnchorPane prefHeight="227.0" prefWidth="556.0">
+            <AnchorPane prefHeight="227.0" prefWidth="556.0" stylesheets="@../css/estilos.css">
                <children>
-                  <Pane layoutX="73.0" layoutY="69.0" prefHeight="86.0" prefWidth="329.0" styleClass="fondoBox" stylesheets="@estilos.css">
+                  <Pane fx:id="boxImageView" layoutX="73.0" layoutY="69.0" prefHeight="86.0" prefWidth="329.0" styleClass="fondoBox" stylesheets="@estilos.css">
                      <children>
                         <ImageView fx:id="vectSSHseLocation2" fitHeight="39.0" fitWidth="54.0" layoutX="55.0" layoutY="24.0" pickOnBounds="true" preserveRatio="true">
                            <image>
-                              <Image url="@imagen/circle-button.png" />
+                              <Image url="@../imagen/circle-button.png" />
                            </image>
                         </ImageView>
                         <ImageView fx:id="vectSSHseLocation1" fitHeight="39.0" fitWidth="54.0" layoutX="145.0" layoutY="33.0" pickOnBounds="true" preserveRatio="true">
                            <image>
-                              <Image url="@imagen/circle-button.png" />
+                              <Image url="@../imagen/circle-button.png" />
                            </image>
                         </ImageView>
                         <ImageView fx:id="vectSSHseLocation3" fitHeight="39.0" fitWidth="54.0" layoutX="238.0" layoutY="23.0" pickOnBounds="true" preserveRatio="true">
                            <image>
-                              <Image url="@imagen/circle-button.png" />
+                              <Image url="@../imagen/circle-button.png" />
                            </image>
                         </ImageView>
                         <Label fx:id="textSSHubi2" alignment="CENTER" layoutX="13.0" layoutY="64.0" prefHeight="18.0" prefWidth="118.0" styleClass="label-delgada" stylesheets="@css/estilos.css" text="ubicacion 2" textAlignment="CENTER" />
@@ -44,7 +44,7 @@
                      </children>
                   </Pane>
                   <TextField fx:id="inpNickName" layoutX="14.0" layoutY="14.0" prefHeight="28.0" prefWidth="189.0" promptText="NickName" />
-                  <Button fx:id="btSSHshowDelete" layoutX="270.0" layoutY="9.0" mnemonicParsing="false" styleClass="boton-peligro" stylesheets="@estilos.css" text="Eliminar" />
+                  <Button fx:id="btSSHshowDelete" layoutX="270.0" layoutY="9.0" mnemonicParsing="false" onAction="#showBtConfDelete" styleClass="boton-peligro" stylesheets="@estilos.css" text="Eliminar" />
                   <Button fx:id="btSSHsaveItem" layoutX="247.0" layoutY="9.0" mnemonicParsing="false" prefHeight="39.0" prefWidth="110.0" stylesheets="@estilos.css" text="Guardar">
                      <styleClass>
                         <String fx:value="boton-amarillo" />
@@ -58,25 +58,27 @@
                      </styleClass>
                   </Button>
                   <CheckBox fx:id="switchStatus" alignment="CENTER" layoutX="156.0" layoutY="173.0" mnemonicParsing="false" prefHeight="39.0" prefWidth="162.0" styleClass="boton-amarillo" stylesheets="@estilos.css" text="Estado" />
-                  <Button fx:id="btSSHconfDelete" layoutX="165.0" layoutY="9.0" mnemonicParsing="false" styleClass="boton-peligro" stylesheets="@estilos.css" text="Confirmar" />
+                  <Button fx:id="btSSHconfDelete" layoutX="165.0" layoutY="9.0" mnemonicParsing="false" onAction="#handlRemoveItem" styleClass="boton-peligro" stylesheets="@estilos.css" text="Confirmar" />
                </children>
             </AnchorPane>
-            <Separator layoutX="26.0" layoutY="500.0" prefHeight="39.0" prefWidth="565.0" />
+            <Separator layoutX="26.0" layoutY="500.0" opacity="0.3" prefHeight="39.0" prefWidth="565.0" />
             <StackPane fx:id="boxHwid" prefHeight="82.0" prefWidth="384.0">
                <children>
-                  <Button fx:id="btHwidAdd" alignment="TOP_CENTER" mnemonicParsing="false" prefHeight="39.0" prefWidth="127.0" styleClass="boton-amarillo" stylesheets="@estilos.css" text="Añadir HWID" StackPane.alignment="BOTTOM_CENTER" />
-                  <Button fx:id="btHwidConfDelete" contentDisplay="CENTER" mnemonicParsing="false" prefHeight="38.0" prefWidth="99.0" styleClass="boton-peligro" stylesheets="@estilos.css" text="Confirmar" StackPane.alignment="BOTTOM_CENTER" />
+                  <Button fx:id="btHwidAdd" alignment="TOP_CENTER" mnemonicParsing="false" onAction="#onAddHwidClick" prefHeight="39.0" prefWidth="127.0" styleClass="boton-amarillo" stylesheets="@estilos.css" text="Añadir HWID" StackPane.alignment="BOTTOM_CENTER" />
+                  <Button fx:id="btHwidConfDelete" contentDisplay="CENTER" mnemonicParsing="false" onAction="#eliminarTagPorTexto" prefHeight="38.0" prefWidth="99.0" styleClass="boton-peligro" stylesheets="@estilos.css" text="Confirmar" StackPane.alignment="BOTTOM_CENTER" />
                   <TextField fx:id="inpSSHwid" alignment="TOP_CENTER" prefHeight="28.0" prefWidth="508.0" promptText="Ingrese el ID del dispositivo" StackPane.alignment="TOP_LEFT" />
-                  <Button fx:id="btHwidShowDelete" alignment="TOP_LEFT" mnemonicParsing="false" prefHeight="36.0" prefWidth="87.0" styleClass="boton-peligro" stylesheets="@estilos.css" text="Eliminar" StackPane.alignment="BOTTOM_LEFT" />
+                  <Button fx:id="btHwidShowDelete" alignment="CENTER" mnemonicParsing="false" onAction="#showHwidDelete" prefHeight="38.0" prefWidth="98.0" styleClass="boton-peligro" stylesheets="@estilos.css" text="Eliminar" textAlignment="CENTER" StackPane.alignment="BOTTOM_LEFT" />
                </children>
             </StackPane>
+            <Separator fx:id="lineTag1" layoutX="160.0" layoutY="470.0" opacity="0.18" prefHeight="24.0" prefWidth="200.0" />
             <FlowPane fx:id="tagsHWID" alignment="BOTTOM_CENTER" prefHeight="95.0" prefWidth="360.0" />
+            <Separator fx:id="lineTag2" opacity="0.18" prefHeight="24.0" prefWidth="200.0" />
             <DatePicker fx:id="dateSSH" styleClass="boton-verde" stylesheets="@estilos.css" />
             <Label fx:id="lbDiasRestantes" alignment="CENTER" prefHeight="18.0" prefWidth="183.0" text="Dias restantes" textAlignment="CENTER" />
-            <Separator prefHeight="36.0" prefWidth="480.0" />
+            <Separator opacity="0.3" prefHeight="36.0" prefWidth="480.0" />
             <Pane prefHeight="34.0" prefWidth="454.0" styleClass="contenedor-blanco" stylesheets="@css/estilos.css">
                <children>
-                  <Button fx:id="btGetServer" layoutX="154.0" layoutY="1.0" minHeight="18.0" mnemonicParsing="false" prefHeight="32.0" prefWidth="147.0" stylesheets="@css/estilos.css" text="Obtener servidor">
+                  <Button fx:id="btGetServer" layoutX="154.0" layoutY="1.0" minHeight="18.0" mnemonicParsing="false" onAction="#btViewServer" prefHeight="32.0" prefWidth="147.0" stylesheets="@css/estilos.css" text="Obtener servidor">
                      <styleClass>
                         <String fx:value="fondoBox" />
                         <String fx:value="label-delgada" />

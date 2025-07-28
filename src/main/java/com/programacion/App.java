@@ -2,8 +2,6 @@ package com.programacion;
 
 import java.io.IOException;
 
-import com.programacion.Utility.LocationDB;
-
 import javafx.application.Application;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
@@ -14,7 +12,7 @@ public class App extends Application {
 
     public void start(Stage stage) {
         try {
-            Parent root = FXMLLoader.load(getClass().getResource("/login.fxml"));
+            Parent root = FXMLLoader.load(getClass().getResource("/fxml/login.fxml"));
             Scene scene = new Scene(root);
             stage.setTitle("FXL mvc scene");
             stage.setScene(scene);
@@ -25,12 +23,9 @@ public class App extends Application {
             e.printStackTrace();
         }
     }
-
-    public static void main(String[] args) {
-        System.out.println(LocationDB.getAllLocations());
-        System.out.println(LocationDB.getImageByIP("186.68.104.139"));
-
-        launch(args);
-    }
-
+    
+     public static void main(String[] args) {
+     
+      launch(args);
+      }
 }

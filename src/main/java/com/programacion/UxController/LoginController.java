@@ -26,13 +26,13 @@ public class LoginController {
         String username = usernameField.getText().trim();
         String password = passwordField.getText().trim();
 
-        if (username.equals("1") && password.equals("1")) {
+        if (username.equals("Grupo2") && password.equals("Grupo2")) {
             statusLabel.setText("✅ Access concedido");
             try {
-                FXMLLoader loader = new FXMLLoader(getClass().getResource("/viewApp.fxml"));
+                FXMLLoader loader = new FXMLLoader(getClass().getResource("/fxml/viewApp.fxml"));
                 Parent root = loader.load();
                 DashBoard controller = loader.getController();
-                controller.setWelcomeText("Hello " + username + " !");
+                controller.setWelcomeText("Bienvenido " + username + " !");
                 Stage stage = (Stage) usernameField.getScene().getWindow();
                 stage.setTitle("DashBoard");
                 stage.setScene(new Scene(root));
@@ -44,7 +44,7 @@ public class LoginController {
                 System.out.println(e);
             }
         } else {
-            statusLabel.setText("❌ Invalid Credentials");
+            statusLabel.setText("❌ Credenciales invalidas");
         }
     }
 

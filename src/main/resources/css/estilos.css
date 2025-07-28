@@ -1,7 +1,7 @@
 /* Fondo del contenedor principal */
 .root {
     -fx-background-color: linear-gradient(to bottom right, #0f0c29, #302b63, #24243e);
-    -fx-font-family: "Segoe UI", sans-serif;
+    -fx-font-family: "Futura";
 }
 
 /* Tarjetas de usuario */
@@ -73,9 +73,6 @@
     -fx-font-size: 13px;
 }
 
-.root {
-    -fx-background-color: red;
-}
 
 .contenedor-blanco {
     -fx-background-color: white;
@@ -151,8 +148,26 @@
   transform: scale(1.05);
 }
 
-
 .fondo-oscuro {
-    -fx-background-color: #1a0836;
+    -fx-background-color: #200F3E;
+     -fx-text-fill: #fffefe;
+}
+
+.fondo-claro {
+    -fx-background-color: #e7daf9;
+     -fx-text-fill: #010101;
+}
+
+.fondo-gris {
+    -fx-background-color: #989799;
+}
+
+.borde {
+    -fx-border-color: #006aff;
+    -fx-border-width: 0.3;
+    -fx-border-radius: 5;
+
+    -fx-text-fill: #e5fff3;
+    -fx-padding: 10 20 10 20;
 }
 
