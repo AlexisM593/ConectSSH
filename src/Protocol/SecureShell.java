@@ -320,7 +320,6 @@ public boolean eliminarUsuario(String usuario, String ip, String claveSSH) {
     }
 }
 
-*/
 
     // Procesar todas las IPs simultáneamente
    //* */ const promises = ips.map(async (ip) => { const conn = new Client()
@@ -343,7 +342,7 @@ public boolean eliminarUsuario(String usuario, String ip, String claveSSH) {
         //                 if (code === 0 && processes.trim().length > 0) {
        //  //                   console.log(`Procesos encontrados para el usuario ${user}. Ejecutando pkill.`);
          ///                    await executeCommand(conn, killUserProcessesCommand);
-           / ///            } else if (code === 1 || processes.trim().length === 0) {
+            ///            } else if (code === 1 || processes.trim().length === 0) {
            ///                  console.log(`No se encontraron procesos activos para el usuario ${user}.`);
                         //
                        // catch (err) {
