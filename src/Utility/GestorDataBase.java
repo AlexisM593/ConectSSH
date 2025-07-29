@@ -1,65 +1,67 @@
 package Utility;
 
+import java.util.ArrayList;
+import java.util.List;
+
 public class GestorDataBase {
 
-    /*
-     
-export async function Protocol_beforeInsert(item, context) {
+    private DatabaseService dbService;
 
-    item.userEnable = true;
-    item.record = [];
+    public GestorDataBase(DatabaseService dbService) {
+        this.dbService = dbService;
+    }
 
-        item.owner = context.userId;
-  
-    const resultRS = await wixData.query("ResellerSSH").eq("reseller", context.userId).find();
-    async function boolean() {
-        const resultUser = await wixData.query("ServersGenerated").eq("_owner", context.userId).find();
-        if (resultRS.items.length > 0) {
-            if (resultRS.items[0].limite > resultUser.items.length) {
-                return true;
-            } else {
-                return false;
-            }
+    public Item protocolBeforeInsert(Item item, Context context) throws Exception {
+        item.setUserEnable(true);
+        item.setRecord(new ArrayList<>());
+        item.setOwner(context.getUserId());
+
+        List<ResellerSSH> resultRS = dbService.queryResellerSSHByUserId(context.getUserId());
+        List<Item> resultUser = dbService.queryServersGeneratedByOwner(context.getUserId());
+
+        boolean limiteOK = false;
+        if (!resultRS.isEmpty()) {
+            ResellerSSH resellItem = resultRS.get(0);
+            limiteOK = resellItem.getLimite() > resultUser.size();
         } else {
-            if (20 > resultUser.items.length) {
-                return true;
+            limiteOK = 20 > resultUser.size();
+        }
+
+        if (!limiteOK) {
+            throw new Exception("Limite alcanzado.");
+        }
+
+        if (item.getType() != null && item.getType().contains("Ridge")) {
+            if (!resultRS.isEmpty()) {
+                ResellerSSH resellItem = resultRS.get(0);
+                double costo = 0.003;
+                if (resellItem.getUsoPrecio() != null) {
+                    costo += resellItem.getUsoPrecio();
+                }
+                resellItem.setUsoPrecio(Math.round(costo * 10000.0) / 10000.0);
+
+                try {
+                    dbService.updateResellerSSH(resellItem);
+                    System.out.println("Item guardado correctamente: " + resellItem.getId());
+                } catch (Exception e) {
+                    System.out.println("Ocurrió un error: " + e.getMessage());
+                }
             } else {
-                return false;
+                System.out.println("No se encontraron resultados para el reseller con userId: " + context.getUserId());
             }
         }
 
+        Item itemPredeterminado = new Item();
+        itemPredeterminado.setOwner("defaultOwner");
+        itemPredeterminado.setType("defaultType");
+        itemPredeterminado.setUserEnable(false);
+
+        List<String> excluir = List.of("record");
+        List<String> proteger = List.of("owner");
+
+        // Llamada directa sin método wrapper
+        ItemUtils.copiarCamposSiVacios(item, itemPredeterminado, excluir, proteger);
+
+        return item;
     }
-
-    if (!(await boolean())) {
-        return Promise.reject(new Error('Limite alcanzado.'));
-    }
-
-    if (item.type.includes("Ridge")) {
-
-        if (resultRS.items.length > 0) { // Asegurarse de que hay al menos un item en la respuesta
-            const resellitem = resultRS.items[0];
-            const optionresell = {
-                _id: resellitem._id
-            };
-            if (resellitem.usoPrecio) {
-                const costo = 0.003 + resellitem.usoPrecio;
-                optionresell.usoPrecio = parseFloat(costo.toFixed(4));
-            } else {
-                optionresell.usoPrecio = 0.003
-            }
-            try {
-                const ressupdate = await wixData.update("ResellerSSH", optionresell);
-                console.log("Item guardado correctamente", ressupdate);
-            } catch (err) {
-                console.log("Ocurrió un error", err);
-            }
-        } else {
-            console.log("No se encontraron resultados para el reseller con userId: ", context.userId);
-        }
-
-    }
-
-    return item;
-}
-     */
 }
